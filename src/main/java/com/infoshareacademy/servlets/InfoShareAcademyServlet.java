@@ -13,8 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @WebServlet(urlPatterns = "/infoShareAcademy")
 public class InfoShareAcademyServlet extends HttpServlet {
@@ -26,40 +25,36 @@ public class InfoShareAcademyServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PrintWriter out = resp.getWriter();
-
-        Template template = templateProvider.getTemplate(
-                getServletContext(),
-                TEMPLATE_NAME
-        );
+        PrintWriter writer = resp.getWriter();
 
         Map<String, Object> model = new HashMap<>();
-        model.put("name", "Bert Pie");
+        model.put("name", "Hubert Piesniak");
         model.put("team", "jjdd5-niewiem");
         model.put("now", LocalDateTime.now());
+
+        sendModelToTemplate(writer, model);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        PrintWriter writer = resp.getWriter();
+
+        Map<String, String[]> parameters = req.getParameterMap();
+
+        for(Map.Entry entry : parameters.entrySet()){
+            Object param = entry.getKey();
+            String[] values = parameters.get(param);
+            Arrays.stream(values).forEach(v -> writer.print(param + "=" + v + "\n"));
+        }
+    }
+
+    private void sendModelToTemplate(PrintWriter out, Map<String, Object> model) throws IOException {
+        Template template = templateProvider.getTemplate(getServletContext(), TEMPLATE_NAME);
 
         try{
             template.process(model, out);
         }catch (TemplateException e){
             System.out.println("Error while processing template: " + e);
-        }
-    }
-
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        PrintWriter out = resp.getWriter();
-
-        Template template = templateProvider.getTemplate(
-                getServletContext(),
-                TEMPLATE_NAME
-        );
-
-        Map<String, String[]> parameters = req.getParameterMap();
-
-        StringBuilder sb = new StringBuilder();
-        for(Map.Entry entry : parameters.entrySet()){
-            out.print(entry.getKey() + "=");
-            out.print(entry.getValue().getClass());
         }
     }
 }
